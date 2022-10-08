@@ -2,21 +2,21 @@ package guru.qa;
 
 import com.codeborne.pdftest.PDF;
 import com.codeborne.xlstest.XLS;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
+import guru.qa.model.CharacterDnD5e;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
-
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.open;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class FileParseJava {
@@ -36,6 +36,19 @@ public class FileParseJava {
             System.out.println("Name: " + entryName + ", Size: " + size);
 
             switch (entryName) {
+                case "simple.csv":
+                    System.out.println("- CSV");
+                    try (InputStream stream_csv = zf.getInputStream(entry)) {
+                        CSVReader reader = new CSVReader(new InputStreamReader(stream_csv));
+                        {
+
+                            List<String[]> content = reader.readAll();
+                            String[] row = content.get(2);
+                            assertThat(row[0]).isEqualTo("Alesi");
+                            assertThat(row[1]).isEqualTo("Tiefling");
+                        }
+                    }
+                    break;
                 case "VampireTheMasquerade_Revised_Ed_rus_1999.pdf":
                     System.out.println("- PDF");
                     try (InputStream stream_pdf = zf.getInputStream(entry)) {
@@ -56,27 +69,23 @@ public class FileParseJava {
                     }
                     break;
 
-                case "Characters.csv":
-                    System.out.println("- CSV");
-                    try (InputStream stream_pdf = zf.getInputStream(entry)) {
-                        CSVReader reader = new CSVReader(new InputStreamReader(is));
-                        {
-
-                            List<String[]> content = reader.readAll();
-                            String[] row = content.get(2);
-                            assertThat(row[0]).isEqualTo("Julian");
-                            assertThat(row[1]).isEqualTo("Human");
-                        }
-                    }
-                    break;
-
-
             }
-
-
         }
-        }}
+    }
+    @Test
+    void jsonTestWithModel() throws Exception {
+        File file = new File("src/test/resources/character_julian.json");
+        ObjectMapper objectMapper = new ObjectMapper();
+        CharacterDnD5e characterDnD5e = objectMapper.readValue(file, CharacterDnD5e.class);
 
+        assertThat(characterDnD5e.name).isEqualTo("Julian");
+        assertThat(characterDnD5e.role).isEqualTo("Warlock");
+        assertThat(characterDnD5e.race).isEqualTo("Human");
+        assertThat(characterDnD5e.level).isEqualTo(10);
+        assertThat(characterDnD5e.isAlive).isEqualTo(true);
+        assertThat(characterDnD5e.invocations.get(0)).isEqualTo("Beast Speech");
+        assertThat(characterDnD5e.invocations.get(1)).isEqualTo("Eldritch Sight");
+    }
 
-
+}
 

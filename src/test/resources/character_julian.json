@@ -1,0 +1,8 @@
+{
+  "name": "Julian",
+  "role": "Warlock",
+  "race": "Human",
+  "level": 10,
+  "isAlive": true,
+  "invocations": ["Beast Speech", "Eldritch Sight"]
+}
